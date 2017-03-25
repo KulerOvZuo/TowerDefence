@@ -7,11 +7,11 @@ using System.Collections;
 public class TowerManager : Singleton<TowerManager> {	
 
     private TowerButton towerBtnPressed = null;
-    private TowerButton lastTowerBtnPressed = null;
+    public TowerButton lastTowerBtnPressed = null;
     private SpriteRenderer spriteRenderer;
     private GameObject towers;
 
-    private Tower towerSelected = null;
+    public Tower towerSelected = null;
 
     [SerializeField] private AudioClip towerBuildClip;
     [SerializeField] private AudioClip towerDestroyClip;
@@ -68,6 +68,7 @@ public class TowerManager : Singleton<TowerManager> {
     }
 
     private void HandleClick(RaycastHit2D hit){
+        //Debug.Log("handleclick");
         if(!(EventSystem.current.IsPointerOverGameObject()) && towerBtnPressed != null){
             PlaceTower(hit);
         } else if(!(EventSystem.current.IsPointerOverGameObject()) && towerBtnPressed == null){
@@ -83,15 +84,19 @@ public class TowerManager : Singleton<TowerManager> {
             ShowInformation();
         }
     }
+    public void UnhandleTower_End(){
+        UnhandleTower();
+        lastTowerBtnPressed = null;
+    }
     public void SelectedTower(TowerButton towerSelected){
         if(towerBtnPressed != towerSelected){
             UnhandleTower();
             towerBtnPressed = towerSelected;
-            spriteRenderer.sprite = towerBtnPressed.TowerPrefab.GetComponent<SpriteRenderer>().sprite;
-            if(lastTowerBtnPressed != towerBtnPressed){
-                towerBtnPressed.Select();
-                lastTowerBtnPressed = towerBtnPressed;
-            }            
+            spriteRenderer.sprite = towerBtnPressed.TowerPrefab.GetComponent<SpriteRenderer>().sprite;  
+
+            towerBtnPressed.Select(lastTowerBtnPressed != towerBtnPressed);            
+            lastTowerBtnPressed = lastTowerBtnPressed != towerBtnPressed ? towerBtnPressed : lastTowerBtnPressed;
+                        
             attackRange.enabled = true;
             Tower.DrowAttackRange(attackRange, towerSelected.TowerPrefab.GetComponent<Tower>().AttackRadius);
         } else {

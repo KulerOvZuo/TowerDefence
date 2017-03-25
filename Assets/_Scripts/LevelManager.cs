@@ -10,6 +10,7 @@ public class LevelManager : MonoBehaviour {
 
     public float autoLoadNextLevelAfter;
     [SerializeField] private int numberOfLevels = 3;
+    public LoadingPanel loadingPanel = null;
     public int NumberOfLevels {get {return numberOfLevels;}}
 
     void Awake(){
@@ -19,7 +20,6 @@ public class LevelManager : MonoBehaviour {
             Destroy(gameObject);
         }
         DontDestroyOnLoad(gameObject);
-        numberOfLevels = 3;
     }
 
     void Start(){
@@ -29,12 +29,27 @@ public class LevelManager : MonoBehaviour {
             Debug.Log("AutoLoad disabled");
         else Debug.Log("Wrong time value");
     }
+
+    public void FindLoadingPanel(){        
+        instance.loadingPanel = GameObject.FindObjectOfType<LoadingPanel>();
+        if(instance.loadingPanel)
+            instance.loadingPanel.Hide();
+    }
     public void LoadLevel(string name){
         Debug.Log("Level load requested for: " + name);
+        if(instance.loadingPanel) instance.loadingPanel.Show();
+        instance.loadingPanel = null;
+        SceneManager.LoadScene(name,LoadSceneMode.Single);
+        //instance.StartCoroutine(LoadLevel_after(name));
+    }
+    IEnumerator LoadLevel_after(string name){
+        yield return new WaitForSeconds(1);
         SceneManager.LoadScene(name,LoadSceneMode.Single);
     }
     public void LoadNextLevel()
     {
+        if(instance.loadingPanel) instance.loadingPanel.Show();
+        instance.loadingPanel = null;
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex+1,LoadSceneMode.Single);
     }
     public void QuitRequest(){
@@ -44,8 +59,15 @@ public class LevelManager : MonoBehaviour {
 
     public void ResetAll(){
         GameObject.FindObjectOfType<OptionsController>().SetDefaults();
-        for(int i=2; i<=NumberOfLevels; i++){
-            PlayerPrefsManager.ResetLevelProgress(i);
+        //@todo delete
+        if(PlayerPrefsManager.IsLevelUnlocked(4)){
+            for(int i=1; i<=NumberOfLevels; i++){
+                PlayerPrefsManager.ResetLevelProgress(i+1);
+            }
+        } else {
+            for(int i=1; i<=NumberOfLevels; i++){
+                PlayerPrefsManager.UnlockLevel(i+1);
+            }
         }
         FindObjectOfType<LevelUnlocker>().CheckLevelsUnlocked();
     }

@@ -7,6 +7,7 @@ using System.Collections;
 public class LevelUnlocker : MonoBehaviour {	
 
     [SerializeField] private GameObject[] levelButtons;
+    [SerializeField] private GameObject winLabel;
 
     // Use this for self-initialization
 	void Awake() {
@@ -19,14 +20,25 @@ public class LevelUnlocker : MonoBehaviour {
 	}
 
     public void CheckLevelsUnlocked(){
-        for(int i=2; i<=LevelManager.instance.NumberOfLevels; i++){
-            if(!PlayerPrefsManager.IsLevelUnlocked(i)){
-                levelButtons[i-1].GetComponent<Button>().interactable = false;
-                Color col = Color.black;
-                col.a = 0.5f;
-                levelButtons[i-1].GetComponent<Image>().color = col;
+        bool all = true;
+        for(int i=1; i<=LevelManager.instance.NumberOfLevels; i++){
+            if(!PlayerPrefsManager.IsLevelUnlocked(i+1)){
+                if(i<levelButtons.Length){
+                    levelButtons[i].GetComponent<Button>().interactable = false;
+                    Color col = Color.black;
+                    col.a = 0.5f;
+                    levelButtons[i].GetComponent<Image>().color = col;
+                }
+                all = false;
+            } else {
+                if(i<levelButtons.Length){
+                    levelButtons[i].GetComponent<Button>().interactable = true;
+                    Color col = Color.white;
+                    col.a = 1f;
+                    levelButtons[i].GetComponent<Image>().color = col;
+                }
             }
-
         }
+        winLabel.SetActive(all);            
     }
 }

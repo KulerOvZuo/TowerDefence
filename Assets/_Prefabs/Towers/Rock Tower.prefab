@@ -21,6 +21,7 @@ GameObject:
   - 224: {fileID: 224000010445161096}
   - 222: {fileID: 222000010628519796}
   - 114: {fileID: 114000014245785126}
+  - 61: {fileID: 61000010855588960}
   m_Layer: 5
   m_Name: UpgradeTower
   m_TagString: Untagged
@@ -160,6 +161,20 @@ Transform:
   - {fileID: 224000010287509498}
   m_Father: {fileID: 0}
   m_RootOrder: 0
+--- !u!61 &61000010855588960
+BoxCollider2D:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1000010064690006}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_Offset: {x: 0, y: 0}
+  serializedVersion: 2
+  m_Size: {x: 1, y: 1}
 --- !u!114 &114000010401996110
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -172,7 +187,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   timeBetweenAttacks: 3
-  attackRadius: 3
+  attackRadius: 2.5
   cost: 10
   projectile: {fileID: 1000011143074398, guid: 123a702a7a4214644b8a0747f122bad4, type: 2}
   startingOffset: {x: 0, y: 0.545, z: 0}

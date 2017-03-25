@@ -115,10 +115,10 @@ public class Enemy : MonoBehaviour {
         TakeDMG(dmg);
         switch(projectileType){
             case ProtType.arrow:
-                currentSpeed = speed*0.4f;
+                currentSpeed = speed*0.25f;
                 break;
             case ProtType.fireball:
-                DOT = 50;
+                DOT = 130;
                 break;
         }
     }

@@ -25,13 +25,15 @@ public class TowerButton : MonoBehaviour {
             description = temp.gameObject;
         Deselect();
     }
-    public void Select(){
+    public void Select(bool showDescription = true){
         Color col = Color.white;
         col.a = 1f;
         image.color = col;
-        if(description)
-            description.SetActive(true);
-        Invoke("FadeDescription",2f);
+        if(showDescription)
+           if(description){
+            description.SetActive(true);        
+            Invoke("FadeDescription",2f);
+           }
     }
     public void Deselect(){
         Color col = Color.white;

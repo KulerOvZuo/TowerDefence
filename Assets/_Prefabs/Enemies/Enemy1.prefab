@@ -123,7 +123,7 @@ MonoBehaviour:
   - {fileID: 4000013928935578, guid: 4122fc41afcbf5141b931abff1e589af, type: 2}
   - {fileID: 4000014258709606, guid: 4122fc41afcbf5141b931abff1e589af, type: 2}
   navigationUpdate: 0.02
-  speed: 60
+  speed: 80
   dieClip: {fileID: 8300000, guid: d98d41e92d3cc0e4c852f57f7eba28a7, type: 3}
   taunt: 1
   dmg: 1

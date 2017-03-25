@@ -6,7 +6,7 @@ public class EnemyDescriptionShower : MonoBehaviour {
     private float fadeTime = 5f;
 	// Use this for initialization
 	void Start () {
-        Invoke("FadeDescription",fadeTime+2f);
+        Invoke("FadeDescription",fadeTime+5f);
 	}
 	
     void FadeDescription(){

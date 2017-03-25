@@ -92,7 +92,7 @@ public class GameManager : Singleton<GameManager> {
         projectiles.name = "Projectiles";
         EnemyList = new List<Enemy>();
         playButtonText.gameObject.SetActive(false);
-        Money = 35;
+        Money = 45;
         Escaped = 0;
         MaxEscaped = 10;
         CurrentWave = 0;
@@ -131,7 +131,7 @@ public class GameManager : Singleton<GameManager> {
     void RestartGame(){
         menuConfirm.SetActive(false);
         playButtonText.gameObject.SetActive(false);
-        Money = 35;
+        Money = 45;
         Escaped = 0;
         MaxEscaped = 10;
         CurrentWave = 0;
@@ -222,6 +222,7 @@ public class GameManager : Singleton<GameManager> {
         EnemyList.Clear();
     }
     public void ShowMenu(){
+        TowerManager.Instance.UnhandleTower_End();
         switch(currentState){
             case GameStatus.gameover:
                 playText.text = "You lost!";
@@ -307,8 +308,10 @@ public class GameManager : Singleton<GameManager> {
         }
 
         speedText.text = "x" + gameSpeed.ToString();
-        Time.timeScale = gameSpeed;
-        Time.fixedDeltaTime = defaultFixeUpdateTime;
+        if(!paused){
+            Time.timeScale = gameSpeed;
+            Time.fixedDeltaTime = defaultFixeUpdateTime;
+        }
     }
 
     public void TryMenu(){

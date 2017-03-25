@@ -148,6 +148,7 @@ public class Tower : MonoBehaviour {
     }
 
     public void UpgradeTower(){
+        //Debug.Log("UpgradeTower");
         if(GameManager.Instance.CanBuildThis(upgradeCost)){
             GameManager.Instance.RemoveMoney(upgradeCost);
             timeBetweenAttacks *= 0.5f;

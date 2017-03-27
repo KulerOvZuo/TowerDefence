@@ -53,7 +53,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   timeBetweenAttacks: 3
-  attackRadius: 5
+  attackRadius: 0
   cost: 25
   projectile: {fileID: 1000011036177364, guid: 9a890bf85fe655947bc0359e0f099beb, type: 2}
   startingOffset: {x: 0, y: 0.83, z: 0}

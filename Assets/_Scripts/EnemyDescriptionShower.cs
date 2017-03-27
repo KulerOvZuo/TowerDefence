@@ -3,12 +3,15 @@ using System.Collections;
 
 public class EnemyDescriptionShower : MonoBehaviour {	
 
-    private float fadeTime = 5f;
+    [Tooltip("How long will be delayed fading of first description")]
+    [SerializeField] private float delayFadeTime = 5f;
+    [Tooltip("How long will last 1 description")]
+    [SerializeField] private float fadeTime = 5f;
 	// Use this for initialization
 	void Start () {
-        Invoke("FadeDescription",fadeTime+5f);
+        Invoke("FadeDescription",fadeTime+delayFadeTime);
 	}
-	
+    //fades first actived description
     void FadeDescription(){
         foreach(Transform ob in transform){
             if(ob.gameObject.activeSelf){

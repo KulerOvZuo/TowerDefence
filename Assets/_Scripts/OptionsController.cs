@@ -2,9 +2,11 @@
 using UnityEngine.UI;
 using System.Collections;
 
+#pragma warning disable 0649
+
 public class OptionsController : MonoBehaviour {	
 
-    public Slider volume;
+    [SerializeField] private Slider volume;
        
     // Use this for self-initialization
 	void Awake() {

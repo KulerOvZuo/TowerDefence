@@ -9,17 +9,15 @@ public class LevelManager : MonoBehaviour {
     public static LevelManager instance = null;
 
     public float autoLoadNextLevelAfter;
+    //number of levels in game, not scenes
+    [Tooltip("Number of levels in game. Must be set properly.")]
     [SerializeField] private int numberOfLevels = 3;
-    public LoadingPanel loadingPanel = null;
     public int NumberOfLevels {get {return numberOfLevels;}}
+    //panel with label "loading"; can be null
+    private LoadingPanel loadingPanel = null;
 
     void Awake(){
-        if(instance == null){
-            instance = this;
-        } else if(instance != this){
-            Destroy(gameObject);
-        }
-        DontDestroyOnLoad(gameObject);
+        Singleton();
     }
 
     void Start(){
@@ -30,26 +28,39 @@ public class LevelManager : MonoBehaviour {
         else Debug.Log("Wrong time value");
     }
 
-    public void FindLoadingPanel(){        
-        instance.loadingPanel = GameObject.FindObjectOfType<LoadingPanel>();
+    //makes LevelManager a singleton
+    void Singleton(){
+        if(instance == null){
+            instance = this;
+        } else if(instance != this){
+            Destroy(gameObject);
+        }
+        DontDestroyOnLoad(gameObject);
+    }
+
+    //on scene start, if panel exists, it calls this function 
+    public void SetLoadingPanel(LoadingPanel obj){        
+        instance.loadingPanel = obj;
         if(instance.loadingPanel)
             instance.loadingPanel.Hide();
     }
+    private void ShowLoadingPanel(){
+        if(instance.loadingPanel)
+            instance.loadingPanel.Show();
+    }
+
     public void LoadLevel(string name){
         Debug.Log("Level load requested for: " + name);
-        if(instance.loadingPanel) instance.loadingPanel.Show();
-        instance.loadingPanel = null;
-        SceneManager.LoadScene(name,LoadSceneMode.Single);
-        //instance.StartCoroutine(LoadLevel_after(name));
-    }
-    IEnumerator LoadLevel_after(string name){
-        yield return new WaitForSeconds(1);
+        ShowLoadingPanel();
         SceneManager.LoadScene(name,LoadSceneMode.Single);
     }
-    public void LoadNextLevel()
-    {
-        if(instance.loadingPanel) instance.loadingPanel.Show();
-        instance.loadingPanel = null;
+
+    IEnumerator LoadLevel(string name, float loadAfterSeconds){
+        yield return new WaitForSeconds(loadAfterSeconds);
+        SceneManager.LoadScene(name,LoadSceneMode.Single);
+    }
+    public void LoadNextLevel(){
+        ShowLoadingPanel();
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex+1,LoadSceneMode.Single);
     }
     public void QuitRequest(){
@@ -57,9 +68,9 @@ public class LevelManager : MonoBehaviour {
         Application.Quit();
     }
 
+    //@todo test function to lock and unlock all levels
     public void ResetAll(){
         GameObject.FindObjectOfType<OptionsController>().SetDefaults();
-        //@todo delete
         if(PlayerPrefsManager.IsLevelUnlocked(4)){
             for(int i=1; i<=NumberOfLevels; i++){
                 PlayerPrefsManager.ResetLevelProgress(i+1);

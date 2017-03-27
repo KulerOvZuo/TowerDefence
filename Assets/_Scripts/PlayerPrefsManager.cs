@@ -16,12 +16,13 @@ public class PlayerPrefsManager : MonoBehaviour {
     public static float GetMasterVolume(){
         return PlayerPrefs.GetFloat(MASTER_VOLUME_KEY);
     }
-
+    //unlock level
     public static void UnlockLevel(int level){
         if(level < SceneManager.sceneCountInBuildSettings)
             PlayerPrefs.SetInt(LEVEL_KEY + level.ToString(), 1); //use 1 for true
         else Debug.LogError("Trying to unlock unexisted level");
     }
+    //check if level is unlocked
     public static bool IsLevelUnlocked(int level){
         if(level < SceneManager.sceneCountInBuildSettings){
             if(PlayerPrefs.GetInt(LEVEL_KEY + level.ToString()) == 1)
@@ -31,6 +32,7 @@ public class PlayerPrefsManager : MonoBehaviour {
         }
         return false;
     }
+    //resets all progress of levels
     public static void ResetLevelProgress(int lvl){
         if(lvl < SceneManager.sceneCountInBuildSettings)
             PlayerPrefs.DeleteKey(LEVEL_KEY + lvl.ToString());

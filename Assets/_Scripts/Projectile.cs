@@ -10,7 +10,9 @@ public class Projectile : MonoBehaviour {
     [SerializeField] private float attackStrength;
     [SerializeField] private float speed;
     [SerializeField] private ProtType projectileType;
+    //target of this projectile
     private GameObject target;
+    //used when for example target is dead
     private Vector3 destinationPosition;
 
     public float AttackStrength{
@@ -31,6 +33,7 @@ public class Projectile : MonoBehaviour {
         Move();
         Rotate();       
     }
+    //moves projectile to the target
     void Move(){
         if(target){
             destinationPosition = target.transform.position;
@@ -39,13 +42,14 @@ public class Projectile : MonoBehaviour {
         if(Vector2.Distance(transform.position,destinationPosition) <= 0.01f) //eg lost target
             Destroy(gameObject);
     }
+    //rotates object to "face" target
     void Rotate(){
         Vector3 look = destinationPosition-transform.position;
         var angleDirection = Mathf.Atan2(look.y,look.x) * Mathf.Rad2Deg;
         if(look.magnitude > 0)
             transform.rotation =  Quaternion.AngleAxis(angleDirection, Vector3.forward);
     }
-
+    //starting 
     public void ProjectileInstantiate(GameObject target){
         this.target = target;
         if(target){

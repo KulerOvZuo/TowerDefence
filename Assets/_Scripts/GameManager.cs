@@ -2,19 +2,23 @@
 using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.Assertions;
+
 #pragma warning disable 0649
 
 public enum GameStatus{
     beforePlay, next, play, gameover, win
 }
 
-public class GameManager : Singleton<GameManager> {	
+public class GameManager : MonoBehaviour {	
+
+    public static GameManager Instance = null;
 
     [SerializeField] int LEVEL_NUMBER;
 
-    [SerializeField] private GameObject spawnPoint;
     [SerializeField] private GameObject[] enemiesPrefabs;
     [SerializeField] private GameObject bossPrefab;
+    [Tooltip("Every x wave bosses show themselves")]
     [SerializeField] private int waveBossIncrease = 5;
     [SerializeField] private int maxEnemiesOnScreen;
     private int enemiesSpawned;
@@ -32,7 +36,8 @@ public class GameManager : Singleton<GameManager> {
     public GameStatus CurrentState{
         get { return currentState;}
     }
-    [SerializeField] private Text moneyText; 
+    [SerializeField] private Text moneyText;
+    private int startMoney;
     [SerializeField] private int money = 10;
     public int Money{
         get { return money;}
@@ -54,13 +59,14 @@ public class GameManager : Singleton<GameManager> {
         set{ maxEscaped = value;
             escapedText.text = "Escaped "+ escaped + "/" + maxEscaped;}
     }
-    private int healCost = 300;
     private int escaped = 0;
     public int Escaped{
         get { return escaped;}
         set { escaped = value;
             escapedText.text = "Escaped "+ escaped + "/" + maxEscaped;}
     }
+    private int healCost = 300;
+
     [SerializeField] private Text playText;
     [SerializeField] private Button playButtonText;
     [SerializeField] private float whichEnemiesToSpawn = 0;
@@ -71,6 +77,13 @@ public class GameManager : Singleton<GameManager> {
     [SerializeField] private Text speedText;
     private float defaultFixeUpdateTime;
     private float gameSpeed = 1f;
+    private float GameSpeed{
+        get {return gameSpeed;}
+        set {
+            gameSpeed = value;
+            speedText.text = "x" + gameSpeed.ToString();
+        }
+    }
     private bool paused = false;
     public bool Paused{ get {return paused;} }
 
@@ -86,13 +99,27 @@ public class GameManager : Singleton<GameManager> {
     }
     // Use this for self-initialization
 	void Awake() {
+        Assert.IsNotNull(moneyText);
+        Assert.IsNotNull(currentWaveText);
+        Assert.IsNotNull(escapedText);
+        Assert.IsNotNull(playText);
+        Assert.IsNotNull(playButtonText);
+        Assert.IsNotNull(menuConfirm);
+        Assert.IsNotNull(pauseButton);
+        Assert.IsNotNull(speedText);
+
+        Singleton();
+
         enemies = new GameObject();
         enemies.name = "Enemies";
         projectiles = new GameObject();
         projectiles.name = "Projectiles";
         EnemyList = new List<Enemy>();
         playButtonText.gameObject.SetActive(false);
-        Money = 45;
+
+        startMoney = money;
+        Money = startMoney;
+
         Escaped = 0;
         MaxEscaped = 10;
         CurrentWave = 0;
@@ -105,33 +132,43 @@ public class GameManager : Singleton<GameManager> {
             waypoints.Add(waypoint);
         }
 	}
+    void Singleton(){
+        if(Instance == null){
+            Instance = this;
+        } else if(Instance != this){
+            Destroy(gameObject);
+        }
+    }
 	
 	// Use this for initialization
 	void Start () {
         TowerManager.Instance.RestartGame();
         ShowMenu();
-        speedText.text = "x" + gameSpeed.ToString();
+        GameSpeed = gameSpeed;
         //StartWave();
 	}
 	
 	// Update is called once per frame
 	void Update () {
-        if(currentState != GameStatus.win && currentState != GameStatus.gameover){
-            if(escaped > maxEscaped){
-                currentState = GameStatus.gameover;
-                ShowMenu();
-            }
-            else
-                CheckIfWaveCleared();
-        }
         if(Input.GetKeyDown(KeyCode.Escape))
             TryMenu();
+        if(currentState == GameStatus.win || currentState == GameStatus.gameover)
+            return;
+        if(escaped > maxEscaped){
+            currentState = GameStatus.gameover;
+            ShowMenu();
+        }
+        else
+            CheckIfWaveCleared();        
 	}
 
     void RestartGame(){
         menuConfirm.SetActive(false);
         playButtonText.gameObject.SetActive(false);
-        Money = 45;
+
+        startMoney = money;
+        Money = startMoney;
+
         Escaped = 0;
         MaxEscaped = 10;
         CurrentWave = 0;
@@ -140,11 +177,17 @@ public class GameManager : Singleton<GameManager> {
         totalEnemies = 10;
         spawnTime = 1f;
         currentState = GameStatus.beforePlay;
+
+        GameSpeed = 1f;
+        Time.timeScale = gameSpeed;
+        Time.fixedDeltaTime = defaultFixeUpdateTime;
+
         TowerManager.Instance.RestartGame();
         DestroyAllEnemies();
         foreach(Transform projectile in projectiles.transform){
             Destroy(projectile.gameObject);
         }
+
         StartWave();
     }
     void StartWave(){
@@ -222,12 +265,12 @@ public class GameManager : Singleton<GameManager> {
         EnemyList.Clear();
     }
     public void ShowMenu(){
-        TowerManager.Instance.UnhandleTower_End();
+        TowerManager.Instance.UnhandleTower_EndWave();
         switch(currentState){
             case GameStatus.gameover:
                 playText.text = "You lost!";
                 AudioSource.PlayClipAtPoint(loseClip,transform.position,0.6f);
-                StartCoroutine(GoToMainMenu_Cor(false));
+                StartCoroutine(GoToMainMenu_Cor(false,1f));
                 break;
             case GameStatus.next:
                 playText.text = "Next wave";
@@ -239,7 +282,7 @@ public class GameManager : Singleton<GameManager> {
                 playText.text = "You won!";
                 PlayerPrefsManager.UnlockLevel(LEVEL_NUMBER+1);
                 AudioSource.PlayClipAtPoint(winClip,transform.position,0.6f);
-                StartCoroutine(GoToMainMenu_Cor(false));
+                StartCoroutine(GoToMainMenu_Cor(false,1f));
                 break;
         }
         playButtonText.gameObject.SetActive(true);
@@ -273,8 +316,8 @@ public class GameManager : Singleton<GameManager> {
             RemoveMoney(healCost);
         }
     }
-    IEnumerator GoToMainMenu_Cor(bool save){
-        yield return new WaitForSecondsRealtime(2);
+    IEnumerator GoToMainMenu_Cor(bool save, float delayTime){
+        yield return new WaitForSecondsRealtime(delayTime);
         GoToMainMenu(save);
     }
     void GoToMainMenu(bool save){
@@ -299,21 +342,21 @@ public class GameManager : Singleton<GameManager> {
     }
     public void ChangeGameSpeed(){
         if(gameSpeed == 1f)
-            gameSpeed = 2f;
+            GameSpeed = 2f;
         else{
             if(gameSpeed == 2f)
-                gameSpeed = 0.5f;
+                GameSpeed = 0.5f;
             else
-                gameSpeed = 1f;
+                GameSpeed = 1f;
         }
 
-        speedText.text = "x" + gameSpeed.ToString();
         if(!paused){
             Time.timeScale = gameSpeed;
             Time.fixedDeltaTime = defaultFixeUpdateTime;
         }
     }
 
+    //metod called after click on menu button
     public void TryMenu(){
         if(menuConfirm.activeSelf){ //already activated -> quit
             LevelManager.instance.LoadLevel("Menu");

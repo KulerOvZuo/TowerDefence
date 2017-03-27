@@ -5,6 +5,8 @@ using System.Collections;
 public class FadeIn : MonoBehaviour {	
 
     private Image panel;
+    [Range(0.01f,3f)]
+    [SerializeField]
     private float fadeTime = 1f;
 
     // Use this for self-initialization

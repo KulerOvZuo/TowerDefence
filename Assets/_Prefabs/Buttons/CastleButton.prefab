@@ -438,6 +438,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   towerPrefab: {fileID: 1000010984592282, guid: a80655c295a56d344ae215fd6d9f6002,
     type: 2}
+  DMGLabel: {fileID: 114000013943837828}
+  costLabel: {fileID: 114000011406813048}
+  description: {fileID: 1000010971268520}
 --- !u!114 &114000013441643898
 MonoBehaviour:
   m_ObjectHideFlags: 1

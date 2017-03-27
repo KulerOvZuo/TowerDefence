@@ -1,17 +1,20 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
+
 using System.Collections;
 using System.Collections.Generic;
 #pragma warning disable 0649
 
 public class Tower : MonoBehaviour {	
 
-    
+    [Range(0.01f,10f)]
     [SerializeField] private float timeBetweenAttacks;
+    [Range(0.01f,10f)]
     [SerializeField] private float attackRadius;
     public float AttackRadius{
         get { return attackRadius;}
@@ -20,21 +23,25 @@ public class Tower : MonoBehaviour {
     public float Cost{
         get { return cost;}
     }
+    //projecitle type tower shoots
     [SerializeField] private GameObject projectile;
-    [SerializeField] private Vector3 startingOffset;
+    //offset of image
+    [Tooltip("Offset of projectile spawn to tower (0,0)")]
+    [SerializeField] private Vector3 projectileStartOffset;
     private Enemy targetEnemy = null;
     private float timeCounter;
     private float timeCounterPrev;
 
-    [SerializeField] private GameObject canvas;
+    [SerializeField] private GameObject upgradeCanvas;
+    //particle system after tower upgrade
     [SerializeField] private GameObject particle;
 
     [SerializeField] private int upgradeCost = 50;
-    private int maxLVL = 1;
+    [SerializeField] private int maxLVL = 1;
     private int LVL = 0;
 
+    //use for showing tower range
     private LineRenderer circle;
-
 
     // Use this for self-initialization
 	void Awake() {
@@ -43,39 +50,43 @@ public class Tower : MonoBehaviour {
 
         circle = GetComponent<LineRenderer>();
         circle.enabled = false;
-        canvas.SetActive(false);
+        upgradeCanvas.SetActive(false);
         particle.SetActive(false);
-        Transform temp = canvas.transform.FindChild("UpgradeTower/Cost/Text");
+        Transform temp = upgradeCanvas.transform.FindChild("UpgradeTower/Cost/Text");
         if(temp)
             temp.gameObject.GetComponent<Text>().text = upgradeCost.ToString();
 	}
 	
 	// Use this for initialization
 	void Start () {
-	    //EventTrigger trigger = GetComponent<EventTrigger>();
 	}
 	
 	// Update is called once per frame
 	void Update () {
-        if(GameManager.Instance.CurrentState != GameStatus.gameover){
-            timeCounter += Time.deltaTime;
-            if(timeCounter >= timeBetweenAttacks){
-                if(timeCounter > timeCounterPrev + 0.1f){ // to not find new enemy every frame
-                    timeCounterPrev = timeCounter; 
-                    targetEnemy = GetEnemyToKill();
-                    if(targetEnemy != null){ //not null -> attack
-                        Attack();
-                    }
-                }
-            }
-        }
+        if(GameManager.Instance.CurrentState == GameStatus.gameover)
+            return;
+        timeCounter += Time.deltaTime;
+        CheckIfAttack();
 	}
 
+    private void CheckIfAttack(){
+        if(timeCounter >= timeBetweenAttacks){
+            if(timeCounter > timeCounterPrev + 0.2f){ // to not find new enemy every frame
+                timeCounterPrev = timeCounter; 
+                targetEnemy = GetEnemyToKill();
+                if(targetEnemy){ //not null -> attack
+                    Attack();
+                }
+            }
+        }       
+    }
+    //perform attack to current target
     public void Attack(){
-        GameObject proj = Instantiate(projectile,transform.position+startingOffset,Quaternion.identity) as GameObject;
+        GameObject proj = Instantiate(projectile,transform.position+projectileStartOffset,Quaternion.identity) as GameObject;
         proj.GetComponent<Projectile>().ProjectileInstantiate(targetEnemy.gameObject);
         timeCounterPrev = timeCounter = 0;
     }
+    //get enemies in range but not dead
     private List<Enemy> GetEnemiesInRange(){
         List<Enemy> enemies = new List<Enemy>();
         foreach(Enemy enemy in GameManager.Instance.EnemyList){
@@ -85,6 +96,7 @@ public class Tower : MonoBehaviour {
         }
         return enemies;
     }
+    //get enemies to kill - most close to the end
     private Enemy GetEnemyToKill(){
         Enemy tempEnemy = null;
         float currentDistance = float.PositiveInfinity;
@@ -99,41 +111,26 @@ public class Tower : MonoBehaviour {
         }
         return tempEnemy;
     }
+
     public float ProjectileDMG(){
         return projectile.GetComponent<Projectile>().AttackStrength;
     }
 
-
+    //shows information about tower - after click
     public void ShowInformation(bool draw){
         DrowAttackRange(draw);
         ShowUpgrade(draw);
     }
 
     public void ShowUpgrade(bool show){
-        if(show){
-            if(LVL < maxLVL){
-                canvas.SetActive(show);
-            }
-        } else {
-            canvas.SetActive(show);
-        }
+        upgradeCanvas.SetActive(show && LVL < maxLVL);
     } 
     public void DrowAttackRange(bool draw){
-        if(draw){
-            circle.enabled = true;
-            float theta_scale = 0.1f;
-            int size = (int)((2.0f*Mathf.PI)/theta_scale);
-            circle.SetWidth(0.1f,0.1f);
-            circle.SetVertexCount(size);
-            for(int i=0; i<size; i++){
-                float x = attackRadius*Mathf.Cos(i*theta_scale);
-                float y = attackRadius*Mathf.Sin(i*theta_scale);
-                Vector3 pos = new Vector3(x,y,0);
-                circle.SetPosition(i,pos);
-            }
-        } else
-            circle.enabled = false;
+        circle.enabled = draw;
+        if(draw)            
+            DrowAttackRange(circle,attackRadius);
     }
+    //metod drows circle range of tower attack radius
     public static void DrowAttackRange(LineRenderer circleTemp, float attackRadius){
         float theta_scale = 0.1f;
         int size = (int)((2.0f*Mathf.PI)/theta_scale);
@@ -147,14 +144,14 @@ public class Tower : MonoBehaviour {
         }
     }
 
+    //metod called on tower is updated
     public void UpgradeTower(){
-        //Debug.Log("UpgradeTower");
         if(GameManager.Instance.CanBuildThis(upgradeCost)){
             GameManager.Instance.RemoveMoney(upgradeCost);
             timeBetweenAttacks *= 0.5f;
             attackRadius *= 1.3f;
             LVL++;
-            canvas.SetActive(false);
+            upgradeCanvas.SetActive(false);
             particle.SetActive(true);
             DrowAttackRange(true);
         }

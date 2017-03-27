@@ -223,10 +223,11 @@ MonoBehaviour:
   attackRadius: 2.3
   cost: 20
   projectile: {fileID: 1000011564333342, guid: 0a8e6a3b3b46e6b49b86e080c7025675, type: 2}
-  startingOffset: {x: 0, y: 0.51, z: 0}
-  canvas: {fileID: 1000013651362500}
+  projectileStartOffset: {x: 0, y: 0.43, z: 0}
+  upgradeCanvas: {fileID: 1000013651362500}
   particle: {fileID: 1000010019668558}
   upgradeCost: 60
+  maxLVL: 1
 --- !u!114 &114000011527051188
 MonoBehaviour:
   m_ObjectHideFlags: 1

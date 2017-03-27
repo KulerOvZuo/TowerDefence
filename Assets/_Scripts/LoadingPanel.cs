@@ -12,11 +12,10 @@ public class LoadingPanel : MonoBehaviour {
 	
 	// Use this for initialization
 	void Start () {
-	    LevelManager.instance.FindLoadingPanel();
+	    LevelManager.instance.SetLoadingPanel(this);
 	}
 	
     public void Show(){
-        //Debug.Log("show");
         transform.localScale = loadingPanelScale;
     }
     public void Hide(){

@@ -1,22 +1,26 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using UnityEngine.Assertions;
+
 #pragma warning disable 0649
 
 public class Enemy : MonoBehaviour {	
 
-    private int target = 0;
+    private int targetWaypoint = 0;
     [SerializeField] private Transform exitPoint;
     [SerializeField] private Transform[] wayPoints;
     [SerializeField] private float navigationUpdate;
     [SerializeField] private float speed = 0.5f;
     [SerializeField] private AudioClip dieClip;
+    //actual speed of enemy
     private float currentSpeed;
+    [Tooltip("Enemy can taunt tower to attack him")]
     [SerializeField] private bool taunt;
     public bool Taunt{
         get{return taunt;}
     }
-
+    [Tooltip("If enemy reaches end, ppl lost that much HP")]
     [SerializeField] private int dmg = 1;
     public int Dmg { get {return dmg;}}
 
@@ -28,6 +32,7 @@ public class Enemy : MonoBehaviour {
         get{return gold;}
     }
 
+    //scale of object
     private Vector3 scale;
     private float navigationTime = 0;
     private bool isDead = false;
@@ -39,6 +44,10 @@ public class Enemy : MonoBehaviour {
     private SpriteRenderer image;
     // Use this for self-initialization
 	void Awake() {
+        Assert.IsNotNull(exitPoint);
+        Assert.IsNotNull(wayPoints);
+        Assert.IsNotNull(dieClip);
+
         anim = GetComponent<Animator>();
         currentSpeed = speed;
         maxHealth = Health;
@@ -50,66 +59,83 @@ public class Enemy : MonoBehaviour {
 	void Start () {
         GameManager.Instance.RegisterEnemy(this);
 	}
+     
+	// Update is called once per frame
+	void Update () {
+        if(!IfCanUpdate())
+            return;
+        TakeDMG(DOT*Time.deltaTime);
+        navigationTime += Time.deltaTime;           
+	}
 
+    void FixedUpdate(){
+        if(!IfCanUpdate())
+            return;
+        Navigate();
+    }
+    bool IfCanUpdate(){
+        return wayPoints != null && !isDead;
+    }
+
+    //movesenemy on map to the next point
+    public void Navigate(){
+        if(navigationTime >= navigationUpdate){
+            IncreaseSpeedBy20percentUpMax();
+            navigationTime -= navigationUpdate;
+            Vector3 nextPosition = FindNextPosition().position;
+            transform.position = Vector2.MoveTowards(transform.position,nextPosition,navigationUpdate*currentSpeed*Time.deltaTime);
+            float xVal = (nextPosition-transform.position).x;
+            if(xVal >= 0f)
+                transform.localScale = scale;
+            else if(xVal <= -0.7f)
+                transform.localScale = new Vector3(-scale.x,scale.y,scale.z);
+        }
+    }
+    public void IncreaseSpeedBy20percentUpMax(){
+        currentSpeed += navigationUpdate*speed*0.2f;
+        if(currentSpeed>speed)
+            currentSpeed = speed;
+    }
+    public Transform FindNextPosition(){
+        return targetWaypoint < wayPoints.Length ? wayPoints[targetWaypoint] : exitPoint;
+    }
     public void SetStartParameters(Transform[] waypoints, Transform exitPoint){
         this.wayPoints = waypoints;
         this.exitPoint = exitPoint;
     }
-	// Update is called once per frame
-	void Update () {
-        if(wayPoints != null && !isDead) {
-            TakeDMG(DOT*Time.deltaTime);
-            navigationTime += Time.deltaTime;
-            if(navigationTime >= navigationUpdate){
-                currentSpeed += navigationUpdate*speed*0.2f;
-                if(currentSpeed>speed)
-                    currentSpeed = speed;
-                navigationTime -= navigationUpdate;
-                Transform nextPosition;
-                if(target < wayPoints.Length){
-                    nextPosition = wayPoints[target];
-                } else {
-                    nextPosition = exitPoint;
-                }
-                transform.position = Vector2.MoveTowards(transform.position,nextPosition.position,navigationUpdate*currentSpeed*Time.deltaTime);
-                float xVal = (nextPosition.position-transform.position).x;
-                if(xVal >= 0f)
-                    transform.localScale = scale;
-                else if(xVal <= -1f)
-                    transform.localScale = new Vector3(-scale.x,scale.y,scale.z);
-            }
-        }
-	}
 
     void OnTriggerEnter2D(Collider2D other){
         if(other.tag == "Checkpoint"){
-            target++;
+            targetWaypoint++;
         } else if(other.tag == "Finish"){
             GameManager.Instance.UnregisterEnemy(this);
             GameManager.Instance.Escaped += dmg;
         } 
     }
-
+    //counts distance to the end of map
     public float DistanceToEnd(){
         float nearest = 0f;
-        if(target < wayPoints.Length)
-            nearest = Vector2.Distance(transform.position,wayPoints[target].position);
+        if(targetWaypoint < wayPoints.Length)
+            nearest = Vector2.Distance(transform.position,wayPoints[targetWaypoint].position);
         else
             nearest = Vector2.Distance(transform.position,exitPoint.position);
-        return (wayPoints.Length - target)*10f + nearest;
+        return (wayPoints.Length - targetWaypoint)*10f + nearest;
         //return (wayPoints.Length - target)*100f + Mathf.Abs((wayPoints[target].position - transform.position).magnitude);
     }
 
     public void TakeDMG(float dmg){
-        float percent = Health/maxHealth;
-        Color col = new Color(1,percent,percent);
-        image.color = col;
+        ChangeColorOnHealth();
         Health -= dmg;
         if(Health <= 0){
             Die();
         } else if(dmg > 0){            
             anim.SetTrigger("Hurt");      
         }  
+    }
+    public void ChangeColorOnHealth(){
+        float percent = Health/maxHealth;
+        Color col = new Color(1,percent,percent);
+        image.color = col;
     }
     public void TakeDMG(float dmg, ProtType projectileType){
         TakeDMG(dmg);
@@ -118,7 +144,7 @@ public class Enemy : MonoBehaviour {
                 currentSpeed = speed*0.25f;
                 break;
             case ProtType.fireball:
-                DOT = 130;
+                DOT = 110;
                 break;
         }
     }

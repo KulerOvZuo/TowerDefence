@@ -24257,6 +24257,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 013ca648f3d81904fa201458ac3f23fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  fadeTime: 1
 --- !u!114 &1099472359
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -38131,6 +38132,11 @@ Prefab:
       propertyPath: waveBossIncrease
       value: 5
       objectReference: {fileID: 0}
+    - target: {fileID: 114000014220650014, guid: 778681fd60e75d7489bcdfd2ba9ce2f4,
+        type: 2}
+      propertyPath: money
+      value: 45
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 778681fd60e75d7489bcdfd2ba9ce2f4, type: 2}
   m_IsPrefabParent: 0
@@ -41861,6 +41867,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   towerPrefab: {fileID: 1000010281716722, guid: 1744dc938c3365b4b94069ca1145da64,
     type: 2}
+  DMGLabel: {fileID: 0}
+  costLabel: {fileID: 0}
+  description: {fileID: 0}
 --- !u!114 &1935509875
 MonoBehaviour:
   m_ObjectHideFlags: 0
